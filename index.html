@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="cupcake" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>주간 국어 피드백 아뜰리에 - GitHub Cloud Edition</title>
+
+  <!-- Pretendard Font -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <!-- Tailwind CSS & DaisyUI CDNs -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(101, 80, 70, 0.2); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(101, 80, 70, 0.35); }
+    pre, textarea { font-variant-ligatures: none; }
+  </style>
+</head>
+
+<body class="bg-base-200 text-base-content font-sans antialiased min-h-screen flex flex-col selection:bg-primary/25 selection:text-primary">
+
+  <header class="navbar bg-base-100 border-b border-base-300 shadow-sm sticky top-0 z-30 px-4 lg:px-8">
+    <div class="navbar-start gap-2.5">
+      <div class="w-10 h-10 rounded-2xl bg-primary text-primary-content flex items-center justify-center shadow-md font-bold text-lg">
+        🧁
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-black tracking-tight text-base-content">국어 피드백 아뜰리에</h1>
+          <span class="badge badge-primary badge-sm font-semibold">GitHub Cloud Sync</span>
+        </div>
+        <p class="text-xs text-base-content/60 hidden sm:block">작성 즉시 깃허브 리포지토리에 영구 보관되는 6단계 카톡 피드백</p>
+      </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="navbar-end gap-2 flex-wrap">
+      <!-- GitHub Sync Status Badge Button -->
+      <button id="open-github-modal" class="btn btn-sm rounded-full gap-1.5 border border-base-300 transition-all" title="깃허브 자동 저장 설정">
+        <span id="gh-status-dot" class="w-2.5 h-2.5 rounded-full bg-warning animate-pulse"></span>
+        <span id="gh-status-label" class="text-xs font-semibold">GitHub 연동 설정</span>
+      </button>
+
+      <!-- Week Selector -->
+      <div class="form-control">
+        <label class="input input-sm input-bordered flex items-center gap-1.5 bg-base-100 rounded-full font-medium">
+          <span class="text-xs text-base-content/60">📅</span>
+          <input type="week" id="week-input" class="grow text-xs cursor-pointer border-none focus:outline-none" />
+        </label>
+      </div>
+
+      <!-- Keyword Bank Button -->
+      <button id="open-keyword-modal" class="btn btn-sm btn-ghost rounded-full gap-1.5 border border-base-300 hover:bg-base-200">
+        <svg class="w-4 h-4 text-secondary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+        </svg>
+        <span class="hidden sm:inline">키워드 뱅크</span>
+      </button>
+
+      <!-- Export Modal Button -->
+      <button id="open-export-modal" class="btn btn-sm btn-primary rounded-full shadow-sm gap-1.5 text-primary-content font-bold">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+        </svg>
+        <span>전체 내보내기</span>
+      </button>
+
+      <!-- Local Backup Dropdown -->
+      <div class="dropdown dropdown-end">
+        <div tabindex="0" role="button" class="btn btn-sm btn-circle btn-ghost border border-base-300" title="오프라인 파일 백업">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+          </svg>
+        </div>
+        <ul tabindex="0" class="dropdown-content z-30 menu p-2 shadow-lg bg-base-100 rounded-2xl w-44 border border-base-200 text-xs gap-1">
+          <li><button id="backup-save-btn" class="rounded-xl">💾 JSON 수동 백업</button></li>
+          <li><button id="backup-load-btn" class="rounded-xl">📂 백업 파일 복원</button></li>
+        </ul>
+        <input type="file" id="backup-file-input" accept="application/json" class="hidden">
+      </div>
+    </div>
+  </header>
+
+  <!-- Realtime Cloud Push Status Banner -->
+  <div id="cloud-banner" class="bg-base-100/90 border-b border-base-300/60 py-1.5 px-4 text-xs font-semibold flex items-center justify-center gap-2 transition-all">
+    <span id="cloud-banner-icon">💡</span>
+    <span id="cloud-banner-text" class="text-base-content/70">상단의 [GitHub 연동 설정]에 저장소 정보를 입력하면 작성된 피드백이 실시간 깃허브에 커밋됩니다.</span>
+  </div>
+
+  <div class="max-w-[1440px] w-full mx-auto flex-1 flex flex-col md:flex-row p-4 lg:p-6 gap-6 min-h-0">
+
+    <!-- Sidebar: Student List -->
+    <aside class="w-full md:w-72 lg:w-80 flex-shrink-0 card bg-base-100 shadow-sm border border-base-300 p-4 flex flex-col rounded-3xl">
+      <div class="flex items-center justify-between pb-3 border-b border-base-200 mb-3">
+        <span class="text-sm font-bold text-base-content">학생 리스트</span>
+        <span id="sidebar-count" class="badge badge-secondary badge-outline badge-sm font-medium">
+          0 / 0 완료
+        </span>
+      </div>
+
+      <div class="form-control mb-3">
+        <div class="relative">
+          <input id="search-box" type="text" placeholder="학생 검색..." class="input input-sm input-bordered w-full rounded-2xl pl-8 pr-3 text-xs bg-base-200/50 focus:bg-base-100" />
+          <svg class="w-3.5 h-3.5 absolute left-3 top-2.5 text-base-content/40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="join w-full mb-3">
+        <input id="new-student-name" type="text" placeholder="새 학생 이름 입력" class="input input-sm input-bordered join-item w-full text-xs rounded-l-2xl" />
+        <button id="add-student-btn" class="btn btn-sm btn-secondary join-item rounded-r-2xl font-bold text-secondary-content">
+          등록
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto pr-1">
+        <ul id="student-list" class="space-y-1.5"></ul>
+      </div>
+    </aside>
+
+    <main class="flex-1 card bg-base-100 shadow-sm border border-base-300 p-5 lg:p-8 rounded-3xl flex flex-col overflow-y-auto">
+      
+      <!-- Empty State -->
+      <div id="empty-state" class="m-auto text-center py-16 px-4 max-w-sm">
+        <div class="w-20 h-20 mx-auto mb-4 rounded-3xl bg-secondary/15 flex items-center justify-center text-4xl shadow-inner animate-bounce">
+          🌸
+        </div>
+        <h3 class="text-xl font-bold text-base-content mb-2">학생을 선택해주세요</h3>
+        <p class="text-sm text-base-content/60 leading-relaxed">
+          왼쪽 목록에서 학생을 클릭하면 6단계 피드백 공식에 따라 카톡 문안이 완성되며, 작성 시 깃허브에 자동으로 안전하게 기록됩니다.
+        </p>
+      </div>
+
+      <!-- Student Editor Workspace -->
+      <div id="student-editor" class="hidden flex-col gap-5">
+        
+        <!-- Editor Top Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-base-200 gap-4">
+          <div>
+            <div class="flex items-center gap-3">
+              <h2 id="student-name" class="text-2xl font-black tracking-tight text-base-content"></h2>
+              <span id="student-status-badge" class="badge badge-sm font-semibold"></span>
+            </div>
+            <p id="week-label-text" class="text-xs text-base-content/60 mt-1 font-medium"></p>
+          </div>
+
+          <!-- Controls: Mode Selector & Copy/Commit Button -->
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <div class="join bg-base-200 p-1 rounded-full border border-base-300">
+              <button id="mode-parent-btn" type="button" class="btn btn-xs rounded-full px-3 join-item btn-primary text-primary-content font-bold">
+                👩‍👦 학부모용 (정중체)
+              </button>
+              <button id="mode-student-btn" type="button" class="btn btn-xs rounded-full px-3 join-item btn-ghost text-base-content/70 font-semibold">
+                🎒 학생용 (응원체)
+              </button>
+            </div>
+
+            <!-- Quick Copy and Instant Commit -->
+            <button id="copy-preview-btn" class="btn btn-sm btn-accent rounded-full text-accent-content font-bold shadow-sm gap-1.5 px-4">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.25 11.25v2.25c0 .621-.504 1.125-1.125 1.125H5.25a1.125 1.125 0 01-1.125-1.125v-8.25c0-.621.504-1.125 1.125-1.125h2.25" />
+              </svg>
+              <span id="copy-preview-text">카톡 문안 복사 & 깃허브 기록</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="categories-container" class="space-y-3.5"></div>
+
+        <!-- KakaoTalk Message Preview Textarea -->
+        <div class="form-control">
+          <div class="flex items-center justify-between mb-2">
+            <label for="preview" class="label-text font-bold text-sm text-base-content flex items-center gap-1.5">
+              <span>💬</span>
+              <span>카카오톡 발송 문안 미리보기 (실제 전송 내용)</span>
+            </label>
+            <span id="char-count" class="badge badge-ghost badge-sm font-mono text-xs">0자</span>
+          </div>
+          <textarea id="preview" rows="8" placeholder="상단 6단계 칩을 선택하면 카카오톡에 최적화된 문장이 자동으로 정돈되어 조립됩니다. 세부 내용은 직접 자유롭게 수정 가능합니다." class="textarea textarea-bordered rounded-2xl w-full text-sm leading-relaxed focus:textarea-primary bg-base-200/40 focus:bg-base-100 transition-all font-sans"></textarea>
+        </div>
+
+        <!-- Teacher Note Textarea -->
+        <div class="form-control">
+          <label for="custom-note" class="label-text font-semibold text-xs text-base-content/70 flex items-center gap-1 mb-1.5">
+            <span>🔒</span>
+            <span>선생님 내부 비공개 메모 (문자에는 미포함, 깃허브에는 함께 영구 보관됨)</span>
+          </label>
+          <textarea id="custom-note" rows="2" placeholder="예: 다음 주 향가 10구체 테스트 시 낙구 감탄사 집중 점검할 것" class="textarea textarea-bordered rounded-2xl w-full text-xs leading-normal focus:textarea-secondary bg-base-200/40 focus:bg-base-100 transition-all"></textarea>
+          
+          <div class="flex items-center justify-between mt-2 text-xs text-base-content/50">
+            <span class="flex items-center gap-1">
+              <span class="text-success font-bold">✓</span> 로컬 자동 저장 및 깃허브 실시간 동기화 지원
+            </span>
+            <span id="last-sync-time" class="text-[11px] text-base-content/40"></span>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- GitHub Cloud Config Modal -->
+  <dialog id="github-modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box max-w-lg bg-base-100 rounded-3xl p-6 border border-base-300">
+      <div class="flex items-center justify-between pb-3 border-b border-base-200 mb-4">
+        <div>
+          <h3 class="font-black text-lg text-base-content flex items-center gap-1.5">
+            <span>☁️</span> GitHub 클라우드 자동 저장 설정
+          </h3>
+          <p class="text-xs text-base-content/60 mt-0.5">선생님이 코멘트를 작성하거나 복사할 때마다 깃허브 리포지토리에 커밋으로 자동 저장됩니다.</p>
+        </div>
+        <form method="dialog">
+          <button class="btn btn-sm btn-circle btn-ghost">✕</button>
+        </form>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div class="form-control">
+          <label class="label font-bold text-xs">1. 저장할 GitHub Repository (소유자/리포지토리명)</label>
+          <input id="gh-repo" type="text" placeholder="예: your-name/korean-feedback-data" class="input input-sm input-bordered rounded-xl w-full" />
+        </div>
+
+        <div class="form-control">
+          <label class="label font-bold text-xs">2. 대상 브랜치 (기본값: main)</label>
+          <input id="gh-branch" type="text" placeholder="main" value="main" class="input input-sm input-bordered rounded-xl w-full" />
+        </div>
+
+        <div class="form-control">
+          <label class="label font-bold text-xs">3. GitHub Personal Access Token (PAT, fine-grained)</label>
+          <input id="gh-token" type="password" placeholder="github_pat_..." class="input input-sm input-bordered rounded-xl w-full font-mono text-xs" />
+          <span class="text-[11px] text-base-content/50 mt-1">
+            * 깃허브 Settings ➔ Developer settings ➔ Personal access tokens에서 해당 리포지토리의 <strong>Contents: Read and Write</strong> 권한으로 발급받으세요.
+          </span>
+        </div>
+
+        <div class="alert alert-warning bg-warning/10 border-warning/30 rounded-2xl py-2 px-3 text-[11px] leading-relaxed">
+          <span>🔒 토큰은 외부 서버로 전송되지 않으며, 브라우저 로컬 저장소에만 보관되어 깃허브 API 호출에 직접 사용됩니다.</span>
+        </div>
+      </div>
+
+      <div class="modal-action flex justify-between items-center mt-5">
+        <button id="gh-test-btn" type="button" class="btn btn-sm btn-outline btn-secondary rounded-full font-bold">
+          ⚡ 연결 테스트
+        </button>
+        <div class="flex gap-2">
+          <form method="dialog">
+            <button class="btn btn-sm btn-ghost rounded-full">닫기</button>
+          </form>
+          <button id="gh-save-btn" type="button" class="btn btn-sm btn-primary rounded-full px-5 font-bold text-primary-content">
+            연동 저장하기
+          </button>
+        </div>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+
+  <!-- Keyword Bank Modal -->
+  <dialog id="keyword-modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box max-w-3xl bg-base-100 rounded-3xl p-6 border border-base-300">
+      <div class="flex items-center justify-between pb-3 border-b border-base-200 mb-4">
+        <div>
+          <h3 class="font-black text-lg text-base-content flex items-center gap-1.5">
+            <span>✨</span> 키워드 뱅크 설정 (원장님 공식 커스텀)
+          </h3>
+          <p class="text-xs text-base-content/60 mt-0.5">각 단계별 칩 라벨과 자동 완성될 문맥을 학원의 교육 과정에 맞게 자유롭게 수정하세요.</p>
+        </div>
+        <form method="dialog">
+          <button class="btn btn-sm btn-circle btn-ghost">✕</button>
+        </form>
+      </div>
+
+      <div id="kw-categories-editor" class="space-y-4 max-h-[60vh] overflow-y-auto pr-1"></div>
+
+      <button id="add-category-btn" class="btn btn-sm btn-block btn-outline btn-secondary rounded-2xl mt-4 gap-1">
+        + 새 단계/카테고리 추가하기
+      </button>
+
+      <div class="modal-action">
+        <form method="dialog">
+          <button class="btn btn-primary rounded-full px-6 font-bold text-primary-content">완료</button>
+        </form>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+
+  <!-- Export Modal -->
+  <dialog id="export-modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box max-w-4xl bg-base-100 rounded-3xl p-6 border border-base-300">
+      <div class="flex items-center justify-between pb-3 border-b border-base-200 mb-4">
+        <div>
+          <h3 class="font-black text-lg text-base-content flex items-center gap-1.5">
+            <span>📤</span> 이번 주 코멘트 일괄 내보내기 & 깃허브 일괄 푸시
+          </h3>
+          <p id="export-week-label" class="text-xs text-base-content/60 mt-0.5"></p>
+        </div>
+        <form method="dialog">
+          <button class="btn btn-sm btn-circle btn-ghost">✕</button>
+        </form>
+      </div>
+
+      <div class="alert alert-info bg-info/10 border-info/30 rounded-2xl py-2.5 px-4 mb-4 text-xs leading-relaxed">
+        <svg class="w-4 h-4 text-info flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>
+          <strong>엑셀 / 구글 시트 붙여넣기 팁:</strong> 아래 [전체 표 복사] 버튼을 누른 뒤 스프레드시트의 첫 번째 칸에 Ctrl+V로 붙여넣으면 [이름]과 [발송 피드백]이 각 열에 깔끔히 정돈되어 들어갑니다.
+        </span>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mb-3">
+        <button id="copy-all-btn" class="btn btn-sm btn-primary rounded-full font-bold text-primary-content gap-1.5 shadow-sm">
+          📋 전체 표 복사 (이름 · 피드백)
+        </button>
+        <button id="download-csv-btn" class="btn btn-sm btn-outline btn-neutral rounded-full font-medium gap-1.5">
+          💾 CSV 파일 다운로드
+        </button>
+        <button id="push-week-summary-btn" class="btn btn-sm btn-secondary rounded-full font-bold gap-1.5 shadow-sm">
+          ☁️ 깃허브에 이번 주 취합본(summary) 푸시
+        </button>
+      </div>
+
+      <div id="export-status" class="text-xs font-semibold text-primary min-h-[18px] mb-2"></div>
+
+      <div class="border border-base-300 rounded-2xl overflow-hidden bg-base-100 mb-4 max-h-60 overflow-y-auto">
+        <table class="table table-xs table-zebra w-full" id="export-table"></table>
+      </div>
+
+      <div class="form-control">
+        <label for="copy-fallback" class="label-text text-[11px] text-base-content/50 mb-1">클립보드 권한 제한 시 수동 복사용 영역</label>
+        <textarea id="copy-fallback" readonly rows="2" class="textarea textarea-bordered text-xs font-mono bg-base-200/50 rounded-xl" placeholder="위 버튼 클릭 시 전체 데이터가 표시됩니다."></textarea>
+      </div>
+
+      <div class="modal-action">
+        <form method="dialog">
+          <button class="btn btn-ghost rounded-full px-6">닫기</button>
+        </form>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+
+<script>
+(function(){
+  // Storage Fallback Shim
+  if (!window.storage) {
+    window.storage = {
+      async get(k) {
+        try {
+          const val = localStorage.getItem(k);
+          return val !== null ? { value: val } : null;
+        } catch(e) { return null; }
+      },
+      async set(k, v) {
+        try {
+          localStorage.setItem(k, v);
+          return true;
+        } catch(e) { return false; }
+      },
+      async list(prefix) {
+        try {
+          const keys = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!prefix || (key && key.startsWith(prefix))) keys.push(key);
+          }
+          return { keys };
+        } catch(e) { return { keys: [] }; }
+      }
+    };
+  }
+
+  const STORAGE_STUDENTS = 'meta:students_v2';
+  const STORAGE_BANK = 'meta:keywordBank_v2';
+  const STORAGE_GH_CONFIG = 'meta:github_config_v1';
+
+  function uid(){ 
+    return 'id' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); 
+  }
+
+  // Unicode safe Base64 encoder/decoder for Korean characters
+  function toBase64(str){
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+  function fromBase64(b64){
+    return decodeURIComponent(escape(atob(b64)));
+  }
+
+  // Director's 6-Step Benchmark Keyword Bank
+  function defaultBank(){
+    return [
+      {
+        id: 'cat_progress', 
+        name: '1. 이번 주 배운 내용 (진도 및 제재)',
+        icon: '📌',
+        multi: true,
+        keywords: [
+          {id: uid(), label:'향가 제망매가', sentence:'고전시가 향가 ‘제망매가’', studentSentence:'고전시가 향가 ‘제망매가’'},
+          {id: uid(), label:'중세문법', sentence:'중세국어 문법 기본 원리', studentSentence:'중세국어 문법 기본 원리'},
+          {id: uid(), label:'관동별곡', sentence:'가사 문학 ‘관동별곡’ 여정 및 정서', studentSentence:'가사 문학 ‘관동별곡’'},
+          {id: uid(), label:'현대시 정서/태도', sentence:'현대시 시적 화자의 태도와 정서 분석', studentSentence:'현대시 화자의 태도와 정서 분석'},
+          {id: uid(), label:'비문학 인문/철학', sentence:'비문학 독서 인문·철학 제재 논증 구조', studentSentence:'비문학 인문·철학 지문 구조'},
+          {id: uid(), label:'비문학 경제', sentence:'비문학 독서 경제 제재 핵심 원리', studentSentence:'비문학 경제 지문 원리'}
+        ]
+      },
+      {
+        id: 'cat_weakness', 
+        name: '2. 학생의 평소 상태 & 난이도 공감 (공감 화법)',
+        icon: '💡',
+        multi: false,
+        keywords: [
+          {
+            id: uid(), 
+            label:'고전 낯섦 + 중세 외계어 공감', 
+            sentence:'{이름}이가 평소 고전문학을 다소 어려워하는 편이라 향가 해석에서 낯설어했고, 중세문법 또한 학생들이 ‘외계어 같다’고 이야기할 만큼 난도가 높은 부분입니다.',
+            studentSentence:'평소 고전문학을 조금 어려워해서 향가 해석이 처음엔 낯설었을 테고, 중세문법은 친구들도 ‘외계어 같다’고 할 만큼 어려운 부분이야.'
+          },
+          {
+            id: uid(), 
+            label:'문법 암기 부담 공감', 
+            sentence:'{이름}이가 평소 문법 개념 암기에 다소 부담을 느끼는 편이라 생소한 용어 정리에 초반 주의가 필요했습니다.',
+            studentSentence:'평소 문법 용어 암기에 부담이 있었을 텐데,'
+          },
+          {
+            id: uid(), 
+            label:'비문학 정보량 부담 공감', 
+            sentence:'{이름}이가 지문의 정보량이 많을 때 핵심을 빠르게 추려내는 데 평소 다소 부담을 느끼곤 했습니다.',
+            studentSentence:'평소 지문 정보량이 많으면 핵심 찾기가 조금 까다로웠을 텐데,'
+          },
+          {
+            id: uid(), 
+            label:'기본기 탄탄 & 자신감', 
+            sentence:'{이름}이가 평소 기본기를 차분하게 잘 쌓아온 편이라 낯선 제재를 마주해서도 차분한 태도를 유지했습니다.',
+            studentSentence:'평소에 다져둔 기본기가 탄탄해서 낯선 제재 앞에서도 침착했어!'
+          }
+        ]
+      },
+      {
+        id: 'cat_perform', 
+        name: '3. 이번 주 수업 수행 & 극복 서사 (성취 포인트)',
+        icon: '🌟',
+        multi: false,
+        keywords: [
+          {
+            id: uid(), 
+            label:'초반 어려움 극복 후 분석 완수', 
+            sentence:'초반에는 다소 어려움을 겪었지만, 이번 수업에서 작품 속 표현과 향가의 갈래 특징, 그리고 연관 관계를 끝까지 스스로 훌륭하게 분석해냈습니다.',
+            studentSentence:'초반엔 조금 헷갈렸지만, 끝까지 집중해서 작품 속 특징과 연관 관계를 멋지게 분석해냈어!'
+          },
+          {
+            id: uid(), 
+            label:'지문 근거 정답 도출', 
+            sentence:'선택지의 진위 여부를 감이 아닌 지문 속 핵심 문장에 정확히 근거하여 스스로 오답을 소거해냈습니다.',
+            studentSentence:'지문 속 정확한 근거를 짚어가며 오답을 하나씩 지워내는 모습이 아주 훌륭했어!'
+          },
+          {
+            id: uid(), 
+            label:'적극적 질문 & 몰입', 
+            sentence:'이해가 가지 않는 난해한 구절에 대해 능동적으로 질문하며 수업 종료 시까지 높은 몰입도를 보였습니다.',
+            studentSentence:'막히는 부분을 그냥 넘어가지 않고 적극적으로 질문하면서 끝까지 몰입해 줘서 대견했어.'
+          }
+        ]
+      },
+      {
+        id: uid(), 
+        name: '4. 저번 주 숙제 및 복습 성실도 (연계 관리)',
+        icon: '📚',
+        multi: false,
+        keywords: [
+          {
+            id: uid(), 
+            label:'지난주 개념 복습 충실 ➔ 진도 완벽 소화', 
+            sentence:'저번 주에 배운 기본 개념을 바탕으로 {이름}이가 숙제와 복습을 성실하게 해온 덕분에 이번 시간 진도까지 막힘없이 훌륭하게 학습하였습니다.',
+            studentSentence:'저번 주에 배운 기본 개념을 숙제와 복습으로 잘 챙겨온 덕분에 이번 시간 진도도 척척 따라올 수 있었어!'
+          },
+          {
+            id: uid(), 
+            label:'과제 완벽 수행 + 오답 정리 우수', 
+            sentence:'주간 과제물의 누락 없이 꼼꼼한 오답 분석까지 완수해 와 학습 지속성이 매우 우수합니다.',
+            studentSentence:'숙제도 꼼꼼히 하고 틀린 문제까지 훌륭하게 정리해 와서 실력이 눈에 띄게 늘고 있어.'
+          },
+          {
+            id: uid(), 
+            label:'기본 개념 누적 복습 보완 필요', 
+            sentence:'다만 저번 주 학습한 기본 원리에 대한 누적 복습이 다소 부족하여 수업 초반 개념을 재정립하는 시간을 가졌습니다.',
+            studentSentence:'다만 지난주에 배운 기본 개념을 한 번 더 복습해 두면 다음 진도가 훨씬 수월해질 거야!'
+          }
+        ]
+      },
+      {
+        id: uid(), 
+        name: '5. 이번 주 칭찬 & 보완점',
+        icon: '🏆',
+        multi: false,
+        keywords: [
+          {
+            id: uid(), 
+            label:'어려운 단원 극복 칭찬', 
+            sentence:'어려운 단원을 포기하지 않고 끈기 있게 완주해 낸 점을 크게 칭찬하며, 성취감을 가질 수 있도록 지도하였습니다.',
+            studentSentence:'어려운 단원인데도 끝까지 포기하지 않고 해낸 {이름}이 칭찬해! 👏'
+          },
+          {
+            id: uid(), 
+            label:'근거 표시 넘버링 보완', 
+            sentence:'앞으로도 지문 속 근거 문장에 직접 밑줄과 번호를 표기하는 정밀 독해 습관을 더욱 체화하도록 이끌겠습니다.',
+            studentSentence:'앞으로도 지문 속 근거 문장에 번호를 매기며 푸는 습관을 계속 유지하자!'
+          },
+          {
+            id: uid(), 
+            label:'시간 안배 실전 훈련', 
+            sentence:'정확도는 높아진 만큼 지문당 소요 시간을 체크하며 실전 속도감을 보강하는 훈련을 이어가겠습니다.',
+            studentSentence:'정확도가 좋아졌으니 이제 시간을 딱 재고 푸는 연습을 조금씩 더해보자!'
+          }
+        ]
+      },
+      {
+        id: uid(), 
+        name: '6. 다음 주 지도 & 가정 연계 당부',
+        icon: '📝',
+        multi: false,
+        keywords: [
+          {
+            id: uid(), 
+            label:'주말 워크북 1회독 격려 요청', 
+            sentence:'다음 주에는 심화 적용 및 확인 테스트가 진행되니, 주말 동안 이번 주 배부된 복습 워크북을 가볍게 1회독 할 수 있도록 가정에서도 따뜻한 격려 부탁드립니다.',
+            studentSentence:'다음 주에는 심화 테스트가 있으니 주말 동안 이번 주 워크북 꼭 1번 훑어보고 오기!'
+          },
+          {
+            id: uid(), 
+            label:'단어장 필수 어휘 암기 확인', 
+            sentence:'다음 시간 시작 직후 주간 필수 어휘 테스트가 예정되어 있으니 어휘장을 복습할 수 있도록 점검 지도 부탁드립니다.',
+            studentSentence:'다음 시간 시작하자마자 단어 시험 있으니까 어휘장 틈틈이 외워두자!'
+          },
+          {
+            id: uid(), 
+            label:'원리 복습 노트 확인 당부', 
+            sentence:'이번 주 다룬 핵심 공식이 다음 진도와 직결되므로 필기 노트를 한 번 더 복습하고 등원하도록 지도하겠습니다.',
+            studentSentence:'이번 주 필기 노트 꼭 다시 한번 복습하고 다음 시간에 보자!'
+          }
+        ]
+      }
+    ];
+  }
+
+  let students = [];
+  let bank = [];
+  let currentWeekKey = '';
+  let weekData = {};
+  let currentStudentId = null;
+  let currentTone = 'parent';
+  let ghConfig = { repo: '', branch: 'main', token: '' };
+  let noteTimer = null, previewTimer = null, bankTimer = null, cloudTimer = null;
+
+  async function safeGet(key, fallback){
+    try{
+      const r = await window.storage.get(key, false);
+      return r && r.value ? JSON.parse(r.value) : fallback;
+    }catch(e){ return fallback; }
+  }
+
+  async function safeSet(key, value){
+    try{
+      await window.storage.set(key, JSON.stringify(value), false);
+    }catch(e){ console.error('Storage Save Error', key, e); }
+  }
+
+  function getDefaultWeekValue(){
+    const now = new Date();
+    const target = new Date(now.valueOf());
+    const dayNr = (now.getDay() + 6) % 7;
+    target.setDate(target.getDate() - dayNr + 3);
+    const firstThursday = new Date(target.getFullYear(),0,4);
+    const diff = (target - firstThursday) / 86400000;
+    const week = 1 + Math.round((diff - (3 - ((firstThursday.getDay()+6)%7))) / 7);
+    return target.getFullYear() + '-W' + String(week).padStart(2,'0');
+  }
+
+  function weekKeyToLabel(wk){
+    if(!wk) return '';
+    const [y, w] = wk.split('-W');
+    return y + '년 ' + parseInt(w,10) + '주차';
+  }
+
+  // ==================== GitHub REST API Sync Engine ====================
+  async function ghApi(endpoint, method = 'GET', body = null){
+    if(!ghConfig.token || !ghConfig.repo){
+      throw new Error('GitHub 연동 설정이 되어있지 않습니다.');
+    }
+    const cleanRepo = ghConfig.repo.trim().replace(/^https:\/\/github.com\//, '').replace(/\/$/, '');
+    const url = `https://api.github.com/repos/${cleanRepo}/${endpoint.replace(/^\//, '')}`;
+    const headers = {
+      'Authorization': `Bearer ${ghConfig.token.trim()}`,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(url, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : null
+    });
+    return res;
+  }
+
+  // 동시에 여러 커밋 요청이 겹치면(연타, 학생 삭제 후 재생성 등) GET 시점과 PUT 시점의
+  // 파일 버전이 어긋나 "sha does not match" 충돌이 발생할 수 있다.
+  // 1) 커밋을 한 번에 하나씩만 순서대로 실행하는 락(lock)과
+  // 2) sha 충돌(409/422) 시 최신 sha를 다시 받아 한 번 재시도하는 로직으로 방지한다.
+  let ghLock = Promise.resolve();
+  function withGhLock(fn){
+    const result = ghLock.then(fn, fn);
+    ghLock = result.then(()=>{}, ()=>{});
+    return result;
+  }
+
+  async function ghCommitFile(path, contentStr, commitMessage){
+    if(!ghConfig.token || !ghConfig.repo) return null;
+
+    return withGhLock(async ()=>{
+      const branch = (ghConfig.branch || 'main').trim();
+
+      async function attempt(){
+        // Check if file already exists to get the CURRENT sha
+        let existingSha = null;
+        try {
+          const getRes = await ghApi(`contents/${path}?ref=${branch}`);
+          if(getRes.ok){
+            const json = await getRes.json();
+            existingSha = json.sha;
+          }
+        } catch(e) {}
+
+        const payload = {
+          message: commitMessage || `Update ${path} via Feedback Atelier`,
+          content: toBase64(contentStr),
+          branch: branch
+        };
+        if(existingSha) payload.sha = existingSha;
+
+        const putRes = await ghApi(`contents/${path}`, 'PUT', payload);
+        if(!putRes.ok){
+          const errData = await putRes.json().catch(()=>({}));
+          const err = new Error(errData.message || '커밋 저장 실패');
+          err.status = putRes.status;
+          throw err;
+        }
+        return await putRes.json();
+      }
+
+      try {
+        return await attempt();
+      } catch(err){
+        // sha 충돌(409 Conflict / 422 Unprocessable)이면 최신 sha로 한 번만 재시도
+        if(err && (err.status === 409 || err.status === 422)){
+          return await attempt();
+        }
+        throw err;
+      }
+    });
+  }
+
+  async function autoCommitStudentFeedback(studentId, isManualSend = false){
+    if(!ghConfig.token || !ghConfig.repo) return;
+    const s = students.find(x => x.id === studentId);
+    if(!s) return;
+    const entry = weekData[studentId];
+    if(!entry || !entry.text || !entry.text.trim()) return;
+
+    const sanitizedStudentName = s.name.replace(/[\/\\:*?"<>|]/g, '_');
+    const path = `records/${currentWeekKey}/${sanitizedStudentName}.json`;
+    const recordPayload = {
+      studentId: s.id,
+      studentName: s.name,
+      week: currentWeekKey,
+      weekLabel: weekKeyToLabel(currentWeekKey),
+      tone: entry.tone || 'parent',
+      content: entry.text,
+      teacherNote: entry.note || '',
+      selectedKeywordIds: entry.selected || [],
+      savedAt: new Date().toISOString(),
+      source: isManualSend ? 'KakaoTalk-Sent' : 'Auto-Sync'
+    };
+
+    setCloudStatus('saving', `${s.name} 피드백 깃허브 커밋 중...`);
+    try {
+      const commitMsg = isManualSend 
+        ? `💬 [카톡 발송] ${s.name} ${currentWeekKey} 피드백 기록` 
+        : `📝 [자동 동기화] ${s.name} ${currentWeekKey} 피드백 저장`;
+
+      await ghCommitFile(path, JSON.stringify(recordPayload, null, 2), commitMsg);
+      setCloudStatus('synced', `✓ 깃허브 커밋 완료: records/${currentWeekKey}/${s.name}.json`);
+      document.getElementById('last-sync-time').textContent = `최근 깃허브 커밋: ${new Date().toLocaleTimeString()}`;
+    } catch(err){
+      console.warn('GitHub Sync Error:', err);
+      setCloudStatus('error', `깃허브 저장 실패: ${err.message}`);
+    }
+  }
+
+  async function pushWeekSummaryToGitHub(){
+    const btn = document.getElementById('push-week-summary-btn');
+    btn.disabled = true;
+    btn.innerHTML = '☁️ 깃허브 푸시 중...';
+
+    const path = `records/${currentWeekKey}/_summary.json`;
+    const summaryData = {
+      week: currentWeekKey,
+      weekLabel: weekKeyToLabel(currentWeekKey),
+      updatedAt: new Date().toISOString(),
+      totalStudents: students.length,
+      completedStudents: students.filter(s => weekData[s.id] && weekData[s.id].text && weekData[s.id].text.trim()).length,
+      records: students.map(s => {
+        const entry = weekData[s.id] || {};
+        return {
+          id: s.id,
+          name: s.name,
+          feedback: entry.text || '',
+          note: entry.note || ''
+        };
+      })
+    };
+
+    try {
+      await ghCommitFile(path, JSON.stringify(summaryData, null, 2), `📊 [주간 취합] ${currentWeekKey} 전체 피드백 리포트 생성`);
+      document.getElementById('export-status').textContent = `✓ 깃허브 저장 완료: records/${currentWeekKey}/_summary.json`;
+    } catch(e){
+      document.getElementById('export-status').textContent = `깃허브 푸시 오류: ${e.message}`;
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '☁️ 깃허브에 이번 주 취합본(summary) 푸시';
+    }
+  }
+
+  function setCloudStatus(state, msg){
+    const dot = document.getElementById('gh-status-dot');
+    const label = document.getElementById('gh-status-label');
+    const bannerText = document.getElementById('cloud-banner-text');
+    const bannerIcon = document.getElementById('cloud-banner-icon');
+
+    if(state === 'synced'){
+      dot.className = 'w-2.5 h-2.5 rounded-full bg-success';
+      label.textContent = 'GitHub 연동됨';
+      bannerIcon.textContent = '☁️';
+      bannerText.textContent = msg;
+    } else if(state === 'saving'){
+      dot.className = 'w-2.5 h-2.5 rounded-full bg-warning animate-spin';
+      label.textContent = '저장 중...';
+      bannerIcon.textContent = '🔄';
+      bannerText.textContent = msg;
+    } else if(state === 'error'){
+      dot.className = 'w-2.5 h-2.5 rounded-full bg-error';
+      label.textContent = '저장 오류';
+      bannerIcon.textContent = '⚠️';
+      bannerText.textContent = msg;
+    } else {
+      dot.className = 'w-2.5 h-2.5 rounded-full bg-base-300';
+      label.textContent = 'GitHub 미연동';
+      bannerIcon.textContent = '💡';
+      bannerText.textContent = 'GitHub 연동 시 작성한 내용이 원장님 리포지토리에 실시간 자동 보관됩니다.';
+    }
+  }
+
+  function scheduleCloudCommit(studentId){
+    clearTimeout(cloudTimer);
+    cloudTimer = setTimeout(()=>{
+      autoCommitStudentFeedback(studentId, false);
+    }, 1200);
+  }
+
+  // ==================== Text Generation Engine ====================
+  function generateDirectorText(studentName, selectedIds, tone = 'parent'){
+    const name = studentName || '학생';
+    
+    const progressKws = (bank[0]?.keywords || []).filter(k => selectedIds.includes(k.id));
+    const weaknessKw = (bank[1]?.keywords || []).find(k => selectedIds.includes(k.id));
+    const performKw = (bank[2]?.keywords || []).find(k => selectedIds.includes(k.id));
+    const hwKw = (bank[3]?.keywords || []).find(k => selectedIds.includes(k.id));
+    const praiseKw = (bank[4]?.keywords || []).find(k => selectedIds.includes(k.id));
+    const nextKw = (bank[5]?.keywords || []).find(k => selectedIds.includes(k.id));
+
+    const progressStr = progressKws.length > 0 
+      ? progressKws.map(k => k.label).join(', ') 
+      : '국어 정규 영역 심화';
+
+    function parse(tmpl){
+      if(!tmpl) return '';
+      return tmpl.replace(/{이름}/g, name);
+    }
+
+    if(tone === 'student'){
+      const lines = [
+        `안녕하세요, ${name}아! 이번 주 국어 수업 피드백이야 🌸`,
+        ``,
+        `📌 [이번 주 배운 내용]`,
+        `• ${progressStr}`,
+        ``,
+        `💡 [수업 및 과제 피드백]`,
+        [
+          parse(weaknessKw ? weaknessKw.studentSentence : ''),
+          parse(performKw ? performKw.studentSentence : ''),
+          parse(hwKw ? hwKw.studentSentence : ''),
+          parse(praiseKw ? praiseKw.studentSentence : '')
+        ].filter(Boolean).join(' '),
+        ``,
+        `📝 [다음 주 안내 & 미션]`,
+        parse(nextKw ? nextKw.studentSentence : '주말 동안 복습 꼼꼼히 챙겨서 다음 주에 만나자!'),
+        `━━━━━━━━━━━━━━━━━━━━━`
+      ];
+      return lines.join('\n');
+    }
+
+    const lines = [
+      `안녕하세요, 어머님! 이번 주 ${name} 국어 수업 피드백 전해드립니다. 🌸`,
+      ``,
+      `📌 [이번 주 수업 진도]`,
+      `• ${progressStr}`,
+      ``,
+      `💡 [수업 및 과제 관찰]`,
+      [
+        parse(weaknessKw ? weaknessKw.sentence : ''),
+        parse(performKw ? performKw.sentence : ''),
+        parse(hwKw ? hwKw.sentence : ''),
+        parse(praiseKw ? praiseKw.sentence : '')
+      ].filter(Boolean).join(' '),
+      ``,
+      `📝 [다음 주 지도 및 당부]`,
+      parse(nextKw ? nextKw.sentence : '이번 주에 다진 기본기를 잘 기억할 수 있도록 가정에서도 격려 부탁드립니다.'),
+      `━━━━━━━━━━━━━━━━━━━━━`
+    ];
+    return lines.join('\n');
+  }
+
+  function updateCharCount(){
+    const text = document.getElementById('preview').value || '';
+    document.getElementById('char-count').textContent = text.length + '자';
+  }
+
+  function renderStudentList(){
+    const listEl = document.getElementById('student-list');
+    const filter = document.getElementById('search-box').value.trim().toLowerCase();
+    listEl.innerHTML = '';
+    
+    const filtered = students.filter(s => !filter || s.name.toLowerCase().includes(filter));
+    
+    filtered.forEach(s=>{
+      const li = document.createElement('li');
+      const hasEntry = weekData[s.id] && weekData[s.id].text && weekData[s.id].text.trim().length > 0;
+      const isActive = s.id === currentStudentId;
+
+      li.className = `group flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs cursor-pointer transition-all duration-150 select-none ${
+        isActive 
+          ? 'bg-primary text-primary-content font-bold shadow-sm' 
+          : 'hover:bg-base-200 text-base-content'
+      }`;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'flex items-center gap-2 overflow-hidden';
+
+      const dot = document.createElement('span');
+      dot.className = `w-2 h-2 rounded-full flex-shrink-0 transition-colors ${
+        isActive 
+          ? (hasEntry ? 'bg-primary-content' : 'bg-primary-content/40') 
+          : (hasEntry ? 'bg-secondary' : 'bg-base-300')
+      }`;
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'truncate tracking-tight font-medium';
+      nameSpan.textContent = s.name;
+
+      wrap.appendChild(dot);
+      wrap.appendChild(nameSpan);
+      li.appendChild(wrap);
+
+      const delBtn = document.createElement('button');
+      delBtn.className = `w-5 h-5 flex items-center justify-center rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity ${
+        isActive ? 'text-primary-content/80 hover:bg-black/10' : 'text-base-content/40 hover:text-error hover:bg-base-300'
+      }`;
+      delBtn.innerHTML = '✕';
+      delBtn.title = '학생 삭제';
+      delBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        removeStudent(s.id);
+      });
+
+      li.appendChild(delBtn);
+      li.addEventListener('click', ()=> selectStudent(s.id));
+      listEl.appendChild(li);
+    });
+
+    const completedCount = students.filter(s => weekData[s.id] && weekData[s.id].text && weekData[s.id].text.trim()).length;
+    document.getElementById('sidebar-count').textContent = `${completedCount} / ${students.length} 완료`;
+  }
+
+  async function addStudent(){
+    const input = document.getElementById('new-student-name');
+    const name = input.value.trim();
+    if(!name) return;
+    const newStudent = { id: uid(), name };
+    students.push(newStudent);
+    input.value = '';
+    await safeSet(STORAGE_STUDENTS, students);
+    selectStudent(newStudent.id);
+    renderStudentList();
+  }
+
+  async function removeStudent(id){
+    students = students.filter(s => s.id !== id);
+    if(currentStudentId === id){
+      currentStudentId = null;
+      document.getElementById('student-editor').classList.add('hidden');
+      document.getElementById('empty-state').classList.remove('hidden');
+    }
+    await safeSet(STORAGE_STUDENTS, students);
+    renderStudentList();
+  }
+
+  function renderCategories(selectedIds){
+    const container = document.getElementById('categories-container');
+    container.innerHTML = '';
+
+    bank.forEach((cat, catIdx)=>{
+      const block = document.createElement('div');
+      block.className = 'bg-base-200/40 p-3 rounded-2xl border border-base-200';
+
+      const header = document.createElement('div');
+      header.className = 'flex items-center justify-between mb-2';
+
+      const h = document.createElement('h4');
+      h.className = 'text-xs font-bold text-secondary flex items-center gap-1.5';
+      const icon = cat.icon || '🌸';
+      h.innerHTML = `<span>${icon}</span><span>${cat.name}</span>`;
+      header.appendChild(h);
+
+      if(!cat.multi && catIdx > 0){
+        const note = document.createElement('span');
+        note.className = 'text-[10px] text-base-content/40 font-normal';
+        note.textContent = '택 1';
+        header.appendChild(note);
+      }
+
+      block.appendChild(header);
+
+      const row = document.createElement('div');
+      row.className = 'flex flex-wrap gap-1.5';
+
+      cat.keywords.forEach(kw=>{
+        const isSelected = selectedIds.includes(kw.id);
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = `btn btn-xs rounded-full normal-case font-medium transition-all duration-150 ${
+          isSelected 
+            ? 'btn-primary text-primary-content shadow-sm scale-105 font-bold' 
+            : 'btn-outline border-base-300 bg-base-100 hover:bg-base-200 text-base-content hover:border-base-300'
+        }`;
+        
+        chip.innerHTML = isSelected ? `✓ ${kw.label}` : kw.label;
+        chip.addEventListener('click', ()=> toggleKeyword(kw.id, cat));
+        row.appendChild(chip);
+      });
+
+      block.appendChild(row);
+      container.appendChild(block);
+    });
+  }
+
+  function selectStudent(id){
+    currentStudentId = id;
+    const s = students.find(x => x.id === id);
+    if(!s) return;
+
+    document.getElementById('empty-state').classList.add('hidden');
+    const editor = document.getElementById('student-editor');
+    editor.classList.remove('hidden');
+    editor.classList.add('flex');
+
+    document.getElementById('student-name').textContent = s.name;
+    document.getElementById('week-label-text').textContent = weekKeyToLabel(currentWeekKey) + ' 카톡 피드백';
+
+    const entry = weekData[id] || { selected:[], text:'', note:'', tone:'parent' };
+    currentTone = entry.tone || 'parent';
+    updateToneButtons();
+
+    const badge = document.getElementById('student-status-badge');
+    if(entry.text && entry.text.trim()){
+      badge.textContent = '작성 완료 🍓';
+      badge.className = 'badge badge-sm badge-secondary font-bold';
+    } else {
+      badge.textContent = '작성 대기중';
+      badge.className = 'badge badge-sm badge-ghost font-medium';
+    }
+
+    renderCategories(entry.selected || []);
+    document.getElementById('preview').value = entry.text || '';
+    document.getElementById('custom-note').value = entry.note || '';
+    updateCharCount();
+    renderStudentList();
+  }
+
+  function ensureEntry(id){
+    if(!weekData[id]) weekData[id] = { selected:[], text:'', note:'', tone: currentTone };
+    return weekData[id];
+  }
+
+  async function toggleKeyword(kwId, cat){
+    if(!currentStudentId) return;
+    const entry = ensureEntry(currentStudentId);
+    const s = students.find(x => x.id === currentStudentId);
+    
+    if(!cat.multi && cat.id !== 'cat_progress'){
+      const siblingIds = cat.keywords.map(k => k.id);
+      entry.selected = entry.selected.filter(id => !siblingIds.includes(id));
+      entry.selected.push(kwId);
+    } else {
+      const idx = entry.selected.indexOf(kwId);
+      if(idx >= 0) entry.selected.splice(idx, 1);
+      else entry.selected.push(kwId);
+    }
+
+    entry.text = generateDirectorText(s ? s.name : '', entry.selected, currentTone);
+    document.getElementById('preview').value = entry.text;
+    updateCharCount();
+    renderCategories(entry.selected);
+
+    const badge = document.getElementById('student-status-badge');
+    if(entry.text && entry.text.trim()){
+      badge.textContent = '작성 완료 🍓';
+      badge.className = 'badge badge-sm badge-secondary font-bold';
+    } else {
+      badge.textContent = '작성 대기중';
+      badge.className = 'badge badge-sm badge-ghost font-medium';
+    }
+
+    await safeSet('week:' + currentWeekKey, weekData);
+    renderStudentList();
+    scheduleCloudCommit(currentStudentId);
+  }
+
+  function updateToneButtons(){
+    const parentBtn = document.getElementById('mode-parent-btn');
+    const studentBtn = document.getElementById('mode-student-btn');
+    if(currentTone === 'parent'){
+      parentBtn.className = 'btn btn-xs rounded-full px-3 join-item btn-primary text-primary-content font-bold';
+      studentBtn.className = 'btn btn-xs rounded-full px-3 join-item btn-ghost text-base-content/70 font-semibold';
+    } else {
+      studentBtn.className = 'btn btn-xs rounded-full px-3 join-item btn-secondary text-secondary-content font-bold';
+      parentBtn.className = 'btn btn-xs rounded-full px-3 join-item btn-ghost text-base-content/70 font-semibold';
+    }
+  }
+
+  async function setTone(tone){
+    currentTone = tone;
+    updateToneButtons();
+    if(!currentStudentId) return;
+    const entry = ensureEntry(currentStudentId);
+    entry.tone = tone;
+    const s = students.find(x => x.id === currentStudentId);
+    entry.text = generateDirectorText(s ? s.name : '', entry.selected, currentTone);
+    document.getElementById('preview').value = entry.text;
+    updateCharCount();
+    await safeSet('week:' + currentWeekKey, weekData);
+    renderStudentList();
+    scheduleCloudCommit(currentStudentId);
+  }
+
+  function onPreviewInput(){
+    if(!currentStudentId) return;
+    const entry = ensureEntry(currentStudentId);
+    entry.text = document.getElementById('preview').value;
+    updateCharCount();
+
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(async ()=>{
+      await safeSet('week:' + currentWeekKey, weekData);
+      renderStudentList();
+      scheduleCloudCommit(currentStudentId);
+    }, 400);
+  }
+
+  function onNoteInput(){
+    if(!currentStudentId) return;
+    const entry = ensureEntry(currentStudentId);
+    entry.note = document.getElementById('custom-note').value;
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(async ()=>{
+      await safeSet('week:' + currentWeekKey, weekData);
+      scheduleCloudCommit(currentStudentId);
+    }, 400);
+  }
+
+  async function onWeekChange(){
+    const val = document.getElementById('week-input').value;
+    if(!val) return;
+    currentWeekKey = val;
+    weekData = await safeGet('week:' + currentWeekKey, {});
+    currentStudentId = null;
+    document.getElementById('student-editor').classList.add('hidden');
+    document.getElementById('empty-state').classList.remove('hidden');
+    renderStudentList();
+  }
+
+  function renderBankEditor(){
+    const el = document.getElementById('kw-categories-editor');
+    el.innerHTML = '';
+
+    bank.forEach((cat, cIdx)=>{
+      const box = document.createElement('div');
+      box.className = 'bg-base-200/50 border border-base-300 rounded-2xl p-4 space-y-3';
+
+      const headerRow = document.createElement('div');
+      headerRow.className = 'flex items-center justify-between gap-2 border-b border-base-300/60 pb-2.5';
+
+      const titleWrap = document.createElement('div');
+      titleWrap.className = 'flex items-center gap-2 grow';
+      const iconInput = document.createElement('input');
+      iconInput.className = 'input input-xs input-bordered w-10 text-center rounded-lg';
+      iconInput.value = cat.icon || '🌸';
+      iconInput.addEventListener('input', ()=>{
+        cat.icon = iconInput.value;
+        scheduleBankSave();
+      });
+
+      const titleInput = document.createElement('input');
+      titleInput.className = 'input input-xs input-ghost font-bold text-sm text-base-content grow focus:bg-base-100';
+      titleInput.value = cat.name;
+      titleInput.placeholder = '단계 및 카테고리명';
+      titleInput.addEventListener('input', ()=>{
+        cat.name = titleInput.value;
+        scheduleBankSave();
+      });
+
+      titleWrap.appendChild(iconInput);
+      titleWrap.appendChild(titleInput);
+
+      const delCatBtn = document.createElement('button');
+      delCatBtn.className = 'btn btn-xs btn-ghost text-error hover:bg-error/10 font-medium';
+      delCatBtn.textContent = '카테고리 삭제';
+      delCatBtn.addEventListener('click', async ()=>{
+        bank = bank.filter(c => c.id !== cat.id);
+        await saveBank();
+        renderBankEditor();
+      });
+
+      headerRow.appendChild(titleWrap);
+      headerRow.appendChild(delCatBtn);
+      box.appendChild(headerRow);
+
+      const kwList = document.createElement('div');
+      kwList.className = 'space-y-2';
+
+      cat.keywords.forEach(kw=>{
+        const row = document.createElement('div');
+        row.className = 'flex flex-col sm:flex-row gap-2 items-start bg-base-100 p-2.5 rounded-xl border border-base-200';
+
+        const labelInput = document.createElement('input');
+        labelInput.className = 'input input-xs input-bordered w-full sm:w-36 text-xs font-semibold rounded-lg';
+        labelInput.value = kw.label;
+        labelInput.placeholder = '칩 버튼 이름';
+        labelInput.addEventListener('input', ()=>{
+          kw.label = labelInput.value;
+          scheduleBankSave();
+        });
+
+        const sentenceInput = document.createElement('textarea');
+        sentenceInput.rows = 2;
+        sentenceInput.className = 'textarea textarea-bordered textarea-xs flex-1 w-full text-xs rounded-lg leading-relaxed';
+        sentenceInput.value = kw.sentence;
+        sentenceInput.placeholder = '학부모용 문장 ({이름} 치환 가능)';
+        sentenceInput.addEventListener('input', ()=>{
+          kw.sentence = sentenceInput.value;
+          scheduleBankSave();
+        });
+
+        const delKwBtn = document.createElement('button');
+        delKwBtn.className = 'btn btn-xs btn-ghost btn-circle text-base-content/40 hover:text-error';
+        delKwBtn.innerHTML = '✕';
+        delKwBtn.title = '항목 삭제';
+        delKwBtn.addEventListener('click', async ()=>{
+          cat.keywords = cat.keywords.filter(k => k.id !== kw.id);
+          await saveBank();
+          renderBankEditor();
+        });
+
+        row.appendChild(labelInput);
+        row.appendChild(sentenceInput);
+        row.appendChild(delKwBtn);
+        kwList.appendChild(row);
+      });
+
+      box.appendChild(kwList);
+
+      const addKwBtn = document.createElement('button');
+      addKwBtn.className = 'btn btn-xs btn-ghost text-primary hover:bg-primary/10 gap-1 rounded-lg';
+      addKwBtn.innerHTML = '+ 키워드 항목 추가';
+      addKwBtn.addEventListener('click', async ()=>{
+        cat.keywords.push({ 
+          id: uid(), 
+          label: '새 키워드', 
+          sentence: '{이름}이가 해당 영역을 성실하게 수행했습니다.',
+          studentSentence: '해당 영역을 아주 잘 해냈어!'
+        });
+        await saveBank();
+        renderBankEditor();
+      });
+
+      box.appendChild(addKwBtn);
+      el.appendChild(box);
+    });
+  }
+
+  function scheduleBankSave(){
+    clearTimeout(bankTimer);
+    bankTimer = setTimeout(saveBank, 400);
+  }
+
+  async function saveBank(){
+    await safeSet(STORAGE_BANK, bank);
+    if(currentStudentId){
+      const entry = ensureEntry(currentStudentId);
+      renderCategories(entry.selected);
+    }
+  }
+
+  async function addCategory(){
+    bank.push({ id: uid(), name: '새 단계/카테고리', icon: '📝', multi: false, keywords: [] });
+    await saveBank();
+    renderBankEditor();
+  }
+
+  function openExportModal(){
+    document.getElementById('export-week-label').textContent = `${weekKeyToLabel(currentWeekKey)} · 전체 ${students.length}명 피드백 리포트`;
+    const table = document.getElementById('export-table');
+    table.innerHTML = `
+      <thead>
+        <tr class="bg-base-200 text-base-content font-bold">
+          <th class="w-24">이름</th>
+          <th>카카오톡 발송 전문</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+    const tbody = table.querySelector('tbody');
+
+    students.forEach(s=>{
+      const entry = weekData[s.id];
+      const text = entry && entry.text ? entry.text : '';
+      const tr = document.createElement('tr');
+      tr.className = 'hover';
+
+      const td1 = document.createElement('td');
+      td1.className = 'font-bold whitespace-nowrap align-top text-xs';
+      td1.textContent = s.name;
+
+      const td2 = document.createElement('td');
+      td2.className = 'whitespace-pre-line leading-relaxed align-top text-xs font-sans';
+      td2.textContent = text || '(작성된 피드백 없음)';
+      if(!text) td2.className += ' text-base-content/40 italic';
+
+      tr.appendChild(td1);
+      tr.appendChild(td2);
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('copy-fallback').value = buildTSV();
+    document.getElementById('export-status').textContent = '';
+    document.getElementById('export-modal').showModal();
+  }
+
+  function quoteForPaste(val){
+    return '"' + String(val).replace(/"/g,'""') + '"';
+  }
+
+  function buildTSV(){
+    const lines = students.map(s=>{
+      const entry = weekData[s.id];
+      const text = entry && entry.text ? entry.text : '';
+      return s.name + '\t' + quoteForPaste(text);
+    });
+    return '이름\t카톡 피드백 코멘트\n' + lines.join('\n');
+  }
+
+  async function copyAll(){
+    const tsv = buildTSV();
+    const statusEl = document.getElementById('export-status');
+    try{
+      await navigator.clipboard.writeText(tsv);
+      statusEl.textContent = '✓ 전체 표 데이터가 복사되었습니다! 엑셀이나 구글 시트에 붙여넣기(Ctrl+V)하세요.';
+      return;
+    }catch(e){}
+    try {
+      const ta = document.getElementById('copy-fallback');
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand('copy');
+      statusEl.textContent = ok ? '✓ 복사 완료!' : '아래 상자에서 텍스트를 선택하여 복사하세요.';
+    }catch(e){
+      statusEl.textContent = '아래 상자에서 텍스트를 선택하여 복사하세요.';
+    }
+  }
+
+  async function copyCurrentStudentPreview(){
+    const previewEl = document.getElementById('preview');
+    const text = previewEl.value;
+    const btnText = document.getElementById('copy-preview-text');
+    if(!text.trim()){
+      btnText.textContent = '내용 없음';
+      setTimeout(()=>{ btnText.textContent = '카톡 문안 복사 & 깃허브 기록'; }, 1500);
+      return;
+    }
+
+    try {
+      previewEl.select();
+      document.execCommand('copy');
+      btnText.textContent = '✓ 복사 완료 & 깃허브 저장!';
+    } catch(e){
+      await navigator.clipboard.writeText(text);
+      btnText.textContent = '✓ 복사 완료 & 깃허브 저장!';
+    }
+
+    if(currentStudentId){
+      await autoCommitStudentFeedback(currentStudentId, true);
+    }
+
+    setTimeout(()=>{ btnText.textContent = '카톡 문안 복사 & 깃허브 기록'; }, 2200);
+  }
+
+  function downloadCSV(){
+    try{
+      const rows = [['이름','카톡 피드백']];
+      students.forEach(s=>{
+        const entry = weekData[s.id];
+        const text = entry && entry.text ? entry.text : '';
+        rows.push([s.name, text]);
+      });
+      const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+      const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `국어피드백_${currentWeekKey}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }catch(e){
+      document.getElementById('export-status').textContent = '다운로드가 원활하지 않아 전체 복사 기능을 권장합니다.';
+    }
+  }
+
+  async function exportBackup(){
+    try{
+      const listResult = await window.storage.list('week:', false);
+      const weekKeys = (listResult && listResult.keys) ? listResult.keys : [];
+      const weeks = {};
+      for(const k of weekKeys){
+        try{
+          const r = await window.storage.get(k, false);
+          if(r && r.value) weeks[k] = JSON.parse(r.value);
+        }catch(e){}
+      }
+      const backup = {
+        app: 'korean-feedback-director-cloud',
+        exportedAt: new Date().toISOString(),
+        students,
+        keywordBank: bank,
+        weeks
+      };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `국어피드백_로컬백업_${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setCloudStatus('synced', '✓ 수동 로컬 백업 파일이 저장되었습니다.');
+    }catch(e){
+      setCloudStatus('error', '백업 실패: ' + e.message);
+    }
+  }
+
+  async function importBackup(file){
+    try{
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if(Array.isArray(data.students)){
+        students = data.students;
+        await safeSet(STORAGE_STUDENTS, students);
+      }
+      if(Array.isArray(data.keywordBank)){
+        bank = data.keywordBank;
+        await safeSet(STORAGE_BANK, bank);
+      }
+      if(data.weeks && typeof data.weeks === 'object'){
+        for(const [k, v] of Object.entries(data.weeks)){
+          await safeSet(k, v);
+        }
+      }
+      weekData = await safeGet('week:' + currentWeekKey, {});
+      currentStudentId = null;
+      document.getElementById('student-editor').classList.add('hidden');
+      document.getElementById('empty-state').classList.remove('hidden');
+      renderStudentList();
+      setCloudStatus('synced', '✓ 백업 데이터를 성공적으로 복원했습니다.');
+    }catch(e){
+      setCloudStatus('error', '백업 파일을 복원할 수 없습니다.');
+    }
+  }
+
+  // GitHub Modal & Connection Settings
+  function initGitHubSettingsUI(){
+    document.getElementById('gh-repo').value = ghConfig.repo || '';
+    document.getElementById('gh-branch').value = ghConfig.branch || 'main';
+    document.getElementById('gh-token').value = ghConfig.token || '';
+
+    if(ghConfig.token && ghConfig.repo){
+      setCloudStatus('synced', `연결됨: ${ghConfig.repo} (${ghConfig.branch || 'main'})`);
+    } else {
+      setCloudStatus('none', '');
+    }
+
+    document.getElementById('gh-save-btn').addEventListener('click', async ()=>{
+      ghConfig.repo = document.getElementById('gh-repo').value.trim();
+      ghConfig.branch = document.getElementById('gh-branch').value.trim() || 'main';
+      ghConfig.token = document.getElementById('gh-token').value.trim();
+
+      await safeSet(STORAGE_GH_CONFIG, ghConfig);
+      document.getElementById('github-modal').close();
+
+      if(ghConfig.token && ghConfig.repo){
+        setCloudStatus('synced', `연결 완료: ${ghConfig.repo}`);
+      } else {
+        setCloudStatus('none', '');
+      }
+    });
+
+    document.getElementById('gh-test-btn').addEventListener('click', async ()=>{
+      const testRepo = document.getElementById('gh-repo').value.trim();
+      const testToken = document.getElementById('gh-token').value.trim();
+      if(!testRepo || !testToken){
+        alert('Repository와 Personal Access Token을 먼저 입력해주세요.');
+        return;
+      }
+      const testBtn = document.getElementById('gh-test-btn');
+      testBtn.disabled = true;
+      testBtn.textContent = '연결 확인 중...';
+      try {
+        const cleanRepo = testRepo.replace(/^https:\/\/github.com\//, '').replace(/\/$/, '');
+        const res = await fetch(`https://api.github.com/repos/${cleanRepo}`, {
+          headers: {
+            'Authorization': `Bearer ${testToken}`,
+            'Accept': 'application/vnd.github+json'
+          }
+        });
+        if(res.ok){
+          const d = await res.json();
+          alert(`✓ 연결 성공! 리포지토리: ${d.full_name} (권한 정상 확인됨)`);
+        } else {
+          const err = await res.json();
+          alert(`연결 실패: ${err.message || '토큰 및 리포지토리명을 확인해주세요.'}`);
+        }
+      } catch(e){
+        alert(`연결 오류: ${e.message}`);
+      } finally {
+        testBtn.disabled = false;
+        testBtn.textContent = '⚡ 연결 테스트';
+      }
+    });
+  }
+
+  async function init(){
+    document.getElementById('week-input').value = getDefaultWeekValue();
+    currentWeekKey = document.getElementById('week-input').value;
+
+    students = await safeGet(STORAGE_STUDENTS, [
+      { id: 'st_1', name: '주원' }
+    ]);
+    bank = await safeGet(STORAGE_BANK, null);
+    if(!bank || !Array.isArray(bank) || bank.length < 6){
+      bank = defaultBank();
+      await safeSet(STORAGE_BANK, bank);
+    }
+    weekData = await safeGet('week:' + currentWeekKey, {});
+    ghConfig = await safeGet(STORAGE_GH_CONFIG, { repo: '', branch: 'main', token: '' });
+
+    renderStudentList();
+    initGitHubSettingsUI();
+
+    // Event Bindings
+    document.getElementById('add-student-btn').addEventListener('click', addStudent);
+    document.getElementById('new-student-name').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') addStudent(); });
+    document.getElementById('search-box').addEventListener('input', renderStudentList);
+    document.getElementById('week-input').addEventListener('change', onWeekChange);
+    document.getElementById('preview').addEventListener('input', onPreviewInput);
+    document.getElementById('custom-note').addEventListener('input', onNoteInput);
+    document.getElementById('copy-preview-btn').addEventListener('click', copyCurrentStudentPreview);
+
+    // Tone Toggle Buttons
+    document.getElementById('mode-parent-btn').addEventListener('click', ()=> setTone('parent'));
+    document.getElementById('mode-student-btn').addEventListener('click', ()=> setTone('student'));
+
+    // Modal Triggers
+    document.getElementById('open-github-modal').addEventListener('click', ()=>{
+      document.getElementById('github-modal').showModal();
+    });
+    document.getElementById('open-keyword-modal').addEventListener('click', ()=>{
+      renderBankEditor();
+      document.getElementById('keyword-modal').showModal();
+    });
+    document.getElementById('add-category-btn').addEventListener('click', addCategory);
+
+    // Export Triggers
+    document.getElementById('open-export-modal').addEventListener('click', openExportModal);
+    document.getElementById('copy-all-btn').addEventListener('click', copyAll);
+    document.getElementById('download-csv-btn').addEventListener('click', downloadCSV);
+    document.getElementById('push-week-summary-btn').addEventListener('click', pushWeekSummaryToGitHub);
+
+    // Backup Triggers
+    document.getElementById('backup-save-btn').addEventListener('click', exportBackup);
+    document.getElementById('backup-load-btn').addEventListener('click', ()=>{
+      document.getElementById('backup-file-input').click();
+    });
+    document.getElementById('backup-file-input').addEventListener('change', (e)=>{
+      const file = e.target.files[0];
+      if(file) importBackup(file);
+      e.target.value = '';
+    });
+
+    if(students.length > 0){
+      selectStudent(students[0].id);
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
